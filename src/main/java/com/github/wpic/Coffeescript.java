@@ -1,4 +1,4 @@
-package com.wpic.maven.coffeescript;
+package com.github.wpic;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.AbstractMojo;

@@ -8,8 +8,8 @@ Very simple coffeescript maven plugin. It can merge and convert all the coffeesc
   <plugins>
      ...
      <plugin>
-        <groupId>sample.plugin</groupId>
-        <artifactId>hello-maven-plugin</artifactId>
+        <groupId>com.github.wpic</groupId>
+        <artifactId>coffeescript-maven-plugin</artifactId>
         <version>1.0-SNAPSHOT</version>
         <configuration>
            <outputFile>${project.build.directory}/js/all.js</outputFile>

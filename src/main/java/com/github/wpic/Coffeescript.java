@@ -23,12 +23,11 @@ public class Coffeescript extends AbstractMojo {
     @Parameter( defaultValue = "${project.basedir}/src/main/webapp", property = "inputDir", required = false )
     private File inputDirectory;
 
-    @Parameter( defaultValue = "${project.build.directory}", property = "outputDir", required = false )
+    @Parameter( defaultValue = "${project.build.directory}/${project.artifactId}", property = "outputDir", required = false )
     private File outputDirectory;
 
     @Parameter( property = "outputFile", required = false )
     private File outputFile;
-
 
     public void execute() throws MojoExecutionException {
         final Iterator<File> files = FileUtils.iterateFiles(this.inputDirectory, new String[]{"coffee"}, true);
@@ -39,13 +38,6 @@ public class Coffeescript extends AbstractMojo {
         while (files.hasNext()) {
             final File in = files.next();
             final String path = in.getPath().substring(this.inputDirectory.getPath().length() + 1);
-            final File out = new File(this.outputDirectory, path.substring(0, path.length() - 6) + "css");
-
-            // create parent folder
-            final File outDir = out.getParentFile();
-            if (!outDir.exists() && !outDir.mkdirs()) {
-                throw new MojoExecutionException("Can not create output dir: " + outDir);
-            }
 
             String coffeescript = null;
             try {
@@ -66,6 +58,13 @@ public class Coffeescript extends AbstractMojo {
                     new MojoExecutionException("Error in coffeescript file: " + in, ex);
                 }
 
+                // create parent folder
+                final File out = new File(this.outputDirectory, path.substring(0, path.length() - 6) + "css");
+                final File outDir = out.getParentFile();
+                if (!outDir.exists() && !outDir.mkdirs()) {
+                    throw new MojoExecutionException("Can not create output dir: " + outDir);
+                }
+
                 try {
                     FileUtils.writeStringToFile(out, js);
                 } catch (IOException ex) {
@@ -80,6 +79,12 @@ public class Coffeescript extends AbstractMojo {
                 js = compiler.compile(totalCoffeescripts.toString());
             } catch (JCoffeeScriptCompileException ex) {
                 new MojoExecutionException("Error in coffeescript files", ex);
+            }
+
+            // create parent folder
+            final File outDir = this.outputFile.getParentFile();
+            if (!outDir.exists() && !outDir.mkdirs()) {
+                throw new MojoExecutionException("Can not create output dir: " + outDir);
             }
 
             try {

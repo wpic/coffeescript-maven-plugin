@@ -12,7 +12,7 @@ Very simple coffeescript maven plugin. It can merge and convert all the coffeesc
         <artifactId>coffeescript-maven-plugin</artifactId>
         <version>1.0</version>
         <configuration>
-           <outputFile>${project.build.directory}/js/all.js</outputFile>
+           <outputFile>${project.build.directory}/${project.artifactId}/js/all.js</outputFile>
         </configuration>
         <executions>
            <execution>

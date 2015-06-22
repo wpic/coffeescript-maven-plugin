@@ -18,7 +18,7 @@ import java.util.Iterator;
  * Convert all coffeescript files to Javascript
  */
 @Mojo( name = "coffeescript")
-public class Coffeescript extends AbstractMojo {
+public class CoffeescriptMojo extends AbstractMojo {
 
     @Parameter( defaultValue = "${project.basedir}/src/main/webapp", property = "inputDir", required = false )
     private File inputDirectory;

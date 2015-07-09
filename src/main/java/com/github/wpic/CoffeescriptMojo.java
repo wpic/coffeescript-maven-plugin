@@ -1,17 +1,22 @@
 package com.github.wpic;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.util.DirectoryScanner;
 import org.jcoffeescript.JCoffeeScriptCompiler;
 
 import javax.script.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Convert all coffeescript files to Javascript
@@ -19,17 +24,31 @@ import java.util.Iterator;
 @Mojo( name = "coffeescript")
 public class CoffeescriptMojo extends AbstractMojo {
 
-    @Parameter( defaultValue = "${project.basedir}/src/main/webapp", property = "inputDir", required = false )
+    @Parameter( defaultValue = "${project.basedir}/src/main/webapp", property = "inputDirectory", required = false )
     private File inputDirectory;
 
-    @Parameter( defaultValue = "${project.build.directory}/${project.artifactId}", property = "outputDir", required = false )
+    @Parameter( defaultValue = "**/*.coffee", property = "include", required = false )
+    private String include;
+
+    @Parameter( property = "exclude", required = false )
+    private String exclude;
+
+    @Parameter( defaultValue = "${project.build.directory}/${project.artifactId}", property = "outputDirectory", required = false )
     private File outputDirectory;
 
     @Parameter( property = "outputFile", required = false )
     private File outputFile;
 
     public void execute() throws MojoExecutionException {
-        final Iterator<File> files = FileUtils.iterateFiles(this.inputDirectory, new String[]{"coffee"}, true);
+        final DirectoryScanner scanner = new DirectoryScanner();
+        scanner.setIncludes(new String[]{include});
+        if (exclude != null) {
+            scanner.setExcludes(new String[]{exclude});
+        }
+        scanner.setBasedir(this.inputDirectory);
+        scanner.setCaseSensitive(false);
+        scanner.scan();
+        final String[] files = scanner.getIncludedFiles();
 
         Compiler compiler;
         try {
@@ -41,9 +60,9 @@ public class CoffeescriptMojo extends AbstractMojo {
 
         final StringBuilder totalCoffeescripts = new StringBuilder();
 
-        while (files.hasNext()) {
-            final File in = files.next();
-            final String path = in.getPath().substring(this.inputDirectory.getPath().length() + 1);
+        for (final String file:files) {
+            final File in = new File(file);
+            final String path = in.getPath(); //in.getPath().substring(this.inputDirectory.getPath().length() + 1);
 
             String coffeescript = null;
             try {

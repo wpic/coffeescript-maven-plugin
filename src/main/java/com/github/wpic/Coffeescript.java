@@ -5,13 +5,12 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.jcoffeescript.JCoffeeScriptCompileException;
 import org.jcoffeescript.JCoffeeScriptCompiler;
-import org.jcoffeescript.Option;
 
+import javax.script.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 
 /**
@@ -32,7 +31,14 @@ public class Coffeescript extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         final Iterator<File> files = FileUtils.iterateFiles(this.inputDirectory, new String[]{"coffee"}, true);
 
-        final JCoffeeScriptCompiler compiler = new JCoffeeScriptCompiler(Collections.<Option>emptyList());
+        Compiler compiler;
+        try {
+            compiler = new NashornCompiler();
+        }
+        catch (Exception ex) {
+            compiler = new JcoffeescriptCompiler();
+        }
+
         final StringBuilder totalCoffeescripts = new StringBuilder();
 
         while (files.hasNext()) {
@@ -48,13 +54,13 @@ public class Coffeescript extends AbstractMojo {
             }
 
             if (this.outputFile != null) {
-                totalCoffeescripts.append(coffeescript);
+                totalCoffeescripts.append(coffeescript).append('\n');
             }
             else {
                 String js = null;
                 try {
                     js = compiler.compile(coffeescript);
-                } catch (JCoffeeScriptCompileException ex) {
+                } catch (Exception ex) {
                     new MojoExecutionException("Error in coffeescript file: " + in, ex);
                 }
 
@@ -77,7 +83,8 @@ public class Coffeescript extends AbstractMojo {
             String js = null;
             try {
                 js = compiler.compile(totalCoffeescripts.toString());
-            } catch (JCoffeeScriptCompileException ex) {
+            } catch (Exception ex) {
+                ex.printStackTrace();
                 new MojoExecutionException("Error in coffeescript files", ex);
             }
 
@@ -94,4 +101,50 @@ public class Coffeescript extends AbstractMojo {
             }
         }
     }
+
+    private interface Compiler {
+        String compile(String js) throws IOException;
+    }
+
+    private class JcoffeescriptCompiler implements Compiler {
+
+        private final JCoffeeScriptCompiler compiler = new JCoffeeScriptCompiler();
+
+        public String compile(String js) throws IOException {
+            try {
+                return this.compiler.compile(js);
+            } catch (Exception ex) {
+                throw new IOException(ex);
+            }
+        }
+    }
+
+    private class NashornCompiler implements Compiler {
+
+        private final Invocable invocable;
+
+        NashornCompiler() {
+            final ScriptEngineManager engineManager = new ScriptEngineManager();
+            final ScriptEngine engine = engineManager.getEngineByName("nashorn");
+            final ScriptEngineFactory factory = engine.getFactory();
+
+            invocable = (Invocable) engine;
+
+            try {
+                engine.eval(new InputStreamReader(getClass().getResourceAsStream("/com/github/wpic/coffee-script.js")));
+            } catch (ScriptException e) {
+                new IllegalStateException("Error to load coffeesctip js");
+            }
+
+        }
+
+        public String compile(final String coffee) throws IOException {
+            try {
+                return invocable.invokeFunction("compile", coffee).toString();
+            } catch (Exception ex) {
+                throw new IOException(ex);
+            }
+        }
+    }
+
 }

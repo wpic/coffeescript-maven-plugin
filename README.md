@@ -37,3 +37,13 @@ Snapshots are not available in maven repository, you can find them [here](https:
 * inputDir: Source directory contains coffeescript files. ```src/main/webapp``` by default.
 * outputDir: Destination directory to save. ```target/``` by default.
 * outputFile: If you set this parameter, all the coffeescripts will merge into the single file (outputDir will be ignore)
+
+# History
+
+**v1.1-SNAPSHOT**
+* Boost performance (Use Nashorn support with Rihno fallback for old version of java)
+* Add filters (Include/Exclude)
+* Fix some bugs
+
+**v1.0**
+* First release

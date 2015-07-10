@@ -1,4 +1,4 @@
-Very simple coffeescript maven plugin. It can merge and convert all the coffeescript files.
+Very simple coffeescript maven plugin. It can merges and converts all the coffeescript files into a single file. This plugin use Nashorn engine for Java8 (much faster) also Java5+ fallback. So, use Java8 if you want to boost performance (at least 2 times faster).
 
 # Sample usage
 

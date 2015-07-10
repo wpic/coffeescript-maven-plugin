@@ -1,10 +1,9 @@
 package com.github.wpic;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.DirectoryScanner;
@@ -14,9 +13,6 @@ import javax.script.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Convert all coffeescript files to Javascript
@@ -39,7 +35,7 @@ public class CoffeescriptMojo extends AbstractMojo {
     @Parameter( property = "outputFile", required = false )
     private File outputFile;
 
-    public void execute() throws MojoExecutionException {
+    public void execute() throws MojoFailureException {
         final DirectoryScanner scanner = new DirectoryScanner();
         scanner.setIncludes(new String[]{include});
         if (exclude != null) {
@@ -69,7 +65,8 @@ public class CoffeescriptMojo extends AbstractMojo {
                 coffeescript = FileUtils.readFileToString(in);
             }
             catch (IOException ex) {
-                new MojoExecutionException("Error to read coffeescript file: " + in);
+                getLog().error(ex);
+                new MojoFailureException("Error to read coffeescript file: " + in);
             }
 
             if (this.outputFile != null) {
@@ -80,20 +77,22 @@ public class CoffeescriptMojo extends AbstractMojo {
                 try {
                     js = compiler.compile(coffeescript);
                 } catch (Exception ex) {
-                    new MojoExecutionException("Error in coffeescript file: " + in, ex);
+                    getLog().error(ex);
+                    new MojoFailureException("Error in coffeescript file: " + in);
                 }
 
                 // create parent folder
                 final File out = new File(this.outputDirectory, path.substring(0, path.length() - 6) + "css");
                 final File outDir = out.getParentFile();
                 if (!outDir.exists() && !outDir.mkdirs()) {
-                    throw new MojoExecutionException("Can not create output dir: " + outDir);
+                    throw new MojoFailureException("Can not create output dir: " + outDir);
                 }
 
                 try {
                     FileUtils.writeStringToFile(out, js);
                 } catch (IOException ex) {
-                    new MojoExecutionException("Error to save JS file: " + out);
+                    getLog().error(ex);
+                    new MojoFailureException("Error to save JS file: " + out);
                 }
             }
         }
@@ -103,20 +102,21 @@ public class CoffeescriptMojo extends AbstractMojo {
             try {
                 js = compiler.compile(totalCoffeescripts.toString());
             } catch (Exception ex) {
-                ex.printStackTrace();
-                new MojoExecutionException("Error in coffeescript files", ex);
+                getLog().error(ex);
+                new MojoFailureException("Error in coffeescript files");
             }
 
             // create parent folder
             final File outDir = this.outputFile.getParentFile();
             if (!outDir.exists() && !outDir.mkdirs()) {
-                throw new MojoExecutionException("Can not create output dir: " + outDir);
+                throw new MojoFailureException("Can not create output dir: " + outDir);
             }
 
             try {
                 FileUtils.writeStringToFile(this.outputFile, js);
             } catch (IOException ex) {
-                new MojoExecutionException("Error to save JS file: " + this.outputFile);
+                getLog().error(ex);
+                new MojoFailureException("Error to save JS file: " + this.outputFile);
             }
         }
     }
@@ -151,7 +151,8 @@ public class CoffeescriptMojo extends AbstractMojo {
 
             try {
                 engine.eval(new InputStreamReader(getClass().getResourceAsStream("/com/github/wpic/coffee-script.js")));
-            } catch (ScriptException e) {
+            } catch (ScriptException ex) {
+                getLog().error(ex);
                 new IllegalStateException("Error to load coffeesctip js");
             }
 
@@ -161,6 +162,7 @@ public class CoffeescriptMojo extends AbstractMojo {
             try {
                 return invocable.invokeFunction("compile", coffee).toString();
             } catch (Exception ex) {
+                getLog().error(ex);
                 throw new IOException(ex);
             }
         }

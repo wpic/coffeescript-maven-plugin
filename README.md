@@ -43,7 +43,7 @@ Snapshots are not available in maven repository, you can find them [here](https:
 **v1.1-SNAPSHOT**
 * Boost performance (Use Nashorn support with Rihno fallback for old version of java)
 * Add filters (Include/Exclude)
-* Fix some bugs
+* Fix error handling and more bugs
 
 **v1.0**
 * First release

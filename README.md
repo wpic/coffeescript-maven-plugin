@@ -28,6 +28,10 @@ Very simple coffeescript maven plugin. It can merges and converts all the coffee
 </build>
 ```
 
+# Use the last vesion
+
+Snapshots are not available in maven repository, you can find them [here](https://oss.sonatype.org/content/repositories/snapshots/com/github/wpic/coffeescript-maven-plugin/).
+
 # Parameters
 
 * inputDir: Source directory contains coffeescript files. ```src/main/webapp``` by default.

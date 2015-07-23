@@ -7,12 +7,9 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.DirectoryScanner;
-import org.jcoffeescript.JCoffeeScriptCompiler;
 
-import javax.script.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 /**
  * Convert all coffeescript files to Javascript
@@ -35,7 +32,7 @@ public class CoffeescriptMojo extends AbstractMojo {
     @Parameter( property = "outputFile", required = false )
     private File outputFile;
 
-    public void execute() throws MojoFailureException {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         final DirectoryScanner scanner = new DirectoryScanner();
         scanner.setIncludes(new String[]{include});
         if (exclude != null) {
@@ -51,7 +48,7 @@ public class CoffeescriptMojo extends AbstractMojo {
             compiler = new NashornCompiler();
         }
         catch (Exception ex) {
-            compiler = new JcoffeescriptCompiler();
+            compiler = new JCoffeescriptCompiler();
         }
 
         final StringBuilder totalCoffeescripts = new StringBuilder();
@@ -66,7 +63,7 @@ public class CoffeescriptMojo extends AbstractMojo {
             }
             catch (IOException ex) {
                 getLog().error(ex);
-                new MojoFailureException("Error to read coffeescript file: " + in);
+                new MojoExecutionException("Error to read coffeescript file: " + in);
             }
 
             if (this.outputFile != null) {
@@ -76,9 +73,9 @@ public class CoffeescriptMojo extends AbstractMojo {
                 String js = null;
                 try {
                     js = compiler.compile(coffeescript);
-                } catch (Exception ex) {
-                    getLog().error(ex);
-                    new MojoFailureException("Error in coffeescript file: " + in);
+                } catch (Throwable t) {
+                    getLog().error(t);
+                    new MojoExecutionException("Error in coffeescript file: " + in);
                 }
 
                 // create parent folder
@@ -90,9 +87,9 @@ public class CoffeescriptMojo extends AbstractMojo {
 
                 try {
                     FileUtils.writeStringToFile(out, js);
-                } catch (IOException ex) {
-                    getLog().error(ex);
-                    new MojoFailureException("Error to save JS file: " + out);
+                } catch (Throwable t) {
+                    getLog().error(t);
+                    new MojoExecutionException("Error to save JS file: " + out);
                 }
             }
         }
@@ -101,9 +98,9 @@ public class CoffeescriptMojo extends AbstractMojo {
             String js = null;
             try {
                 js = compiler.compile(totalCoffeescripts.toString());
-            } catch (Exception ex) {
-                getLog().error(ex);
-                new MojoFailureException("Error in coffeescript files");
+            } catch (Throwable t) {
+                getLog().error(t);
+                new MojoExecutionException("Error in coffeescript files");
             }
 
             // create parent folder
@@ -116,54 +113,7 @@ public class CoffeescriptMojo extends AbstractMojo {
                 FileUtils.writeStringToFile(this.outputFile, js);
             } catch (IOException ex) {
                 getLog().error(ex);
-                new MojoFailureException("Error to save JS file: " + this.outputFile);
-            }
-        }
-    }
-
-    private interface Compiler {
-        String compile(String js) throws IOException;
-    }
-
-    private class JcoffeescriptCompiler implements Compiler {
-
-        private final JCoffeeScriptCompiler compiler = new JCoffeeScriptCompiler();
-
-        public String compile(String js) throws IOException {
-            try {
-                return this.compiler.compile(js);
-            } catch (Exception ex) {
-                throw new IOException(ex);
-            }
-        }
-    }
-
-    private class NashornCompiler implements Compiler {
-
-        private final Invocable invocable;
-
-        NashornCompiler() {
-            final ScriptEngineManager engineManager = new ScriptEngineManager();
-            final ScriptEngine engine = engineManager.getEngineByName("nashorn");
-            final ScriptEngineFactory factory = engine.getFactory();
-
-            invocable = (Invocable) engine;
-
-            try {
-                engine.eval(new InputStreamReader(getClass().getResourceAsStream("/com/github/wpic/coffee-script.js")));
-            } catch (ScriptException ex) {
-                getLog().error(ex);
-                new IllegalStateException("Error to load coffeesctip js");
-            }
-
-        }
-
-        public String compile(final String coffee) throws IOException {
-            try {
-                return invocable.invokeFunction("compile", coffee).toString();
-            } catch (Exception ex) {
-                getLog().error(ex);
-                throw new IOException(ex);
+                new MojoExecutionException("Error to save JS file: " + this.outputFile);
             }
         }
     }

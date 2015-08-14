@@ -63,7 +63,7 @@ public class CoffeescriptMojo extends AbstractMojo {
             }
             catch (IOException ex) {
                 getLog().error(ex);
-                new MojoExecutionException("Error to read coffeescript file: " + in);
+                throw new MojoExecutionException("Error to read coffeescript file: " + in);
             }
 
             if (this.outputFile != null) {
@@ -75,7 +75,7 @@ public class CoffeescriptMojo extends AbstractMojo {
                     js = compiler.compile(coffeescript);
                 } catch (Throwable t) {
                     getLog().error(t);
-                    new MojoExecutionException("Error in coffeescript file: " + in);
+                    throw new MojoExecutionException("Error in coffeescript file: " + in);
                 }
 
                 // create parent folder
@@ -89,7 +89,7 @@ public class CoffeescriptMojo extends AbstractMojo {
                     FileUtils.writeStringToFile(out, js);
                 } catch (Throwable t) {
                     getLog().error(t);
-                    new MojoExecutionException("Error to save JS file: " + out);
+                    throw new MojoExecutionException("Error to save JS file: " + out);
                 }
             }
         }
@@ -100,7 +100,7 @@ public class CoffeescriptMojo extends AbstractMojo {
                 js = compiler.compile(totalCoffeescripts.toString());
             } catch (Throwable t) {
                 getLog().error(t);
-                new MojoExecutionException("Error in coffeescript files");
+                throw new MojoExecutionException("Error in coffeescript files");
             }
 
             // create parent folder
@@ -113,7 +113,7 @@ public class CoffeescriptMojo extends AbstractMojo {
                 FileUtils.writeStringToFile(this.outputFile, js);
             } catch (IOException ex) {
                 getLog().error(ex);
-                new MojoExecutionException("Error to save JS file: " + this.outputFile);
+                throw new MojoExecutionException("Error to save JS file: " + this.outputFile);
             }
         }
     }

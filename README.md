@@ -40,6 +40,9 @@ Snapshots are not available in maven repository, you can find them [here](https:
 
 # History
 
+**v1.1**
+* Fix throwing exception on compile failure
+
 **v1.1-SNAPSHOT**
 * Boost performance (Use Nashorn support with Rihno fallback for old version of java)
 * Add filters (Include/Exclude)

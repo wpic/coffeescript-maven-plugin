@@ -10,7 +10,7 @@ Very simple coffeescript maven plugin. It can merges and converts all the coffee
      <plugin>
         <groupId>com.github.wpic</groupId>
         <artifactId>coffeescript-maven-plugin</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
         <configuration>
            <outputFile>${project.build.directory}/${project.artifactId}/js/all.js</outputFile>
         </configuration>

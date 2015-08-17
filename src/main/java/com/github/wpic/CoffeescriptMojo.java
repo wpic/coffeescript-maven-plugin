@@ -10,6 +10,8 @@ import org.codehaus.plexus.util.DirectoryScanner;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Convert all coffeescript files to Javascript
@@ -32,9 +34,6 @@ public class CoffeescriptMojo extends AbstractMojo {
     @Parameter( property = "outputFile", required = false )
     private File outputFile;
 
-    @Parameter( defaultValue = "false", property = "bare", required = false )
-    private Boolean bare;
-
     public void execute() throws MojoExecutionException, MojoFailureException {
         final DirectoryScanner scanner = new DirectoryScanner();
         scanner.setIncludes(new String[]{include});
@@ -54,13 +53,13 @@ public class CoffeescriptMojo extends AbstractMojo {
             compiler = new JCoffeescriptCompiler();
         }
 
-        final StringBuilder totalCoffeescripts = new StringBuilder();
+        final List<String> totalCoffeescripts = new ArrayList<String>();
 
         for (final String file:files) {
             final File in = new File(file);
             final String path = in.getPath(); //in.getPath().substring(this.inputDirectory.getPath().length() + 1);
 
-            String coffeescript = null;
+            String coffeescript;
             try {
                 coffeescript = FileUtils.readFileToString(in);
             }
@@ -70,15 +69,12 @@ public class CoffeescriptMojo extends AbstractMojo {
             }
 
             if (this.outputFile != null) {
-                totalCoffeescripts.append(coffeescript).append('\n');
+                totalCoffeescripts.add(coffeescript);
             }
             else {
-                String js = null;
+                String js;
                 try {
                     js = compiler.compile(coffeescript);
-                    if (!bare) {
-                        js = "(function() {" + js + "}).call(this);";
-                    }
                 } catch (Throwable t) {
                     getLog().error(t);
                     throw new MojoExecutionException("Error in coffeescript file: " + in);
@@ -100,12 +96,11 @@ public class CoffeescriptMojo extends AbstractMojo {
             }
         }
 
-        if (totalCoffeescripts.length() > 0) {
-            String js;
+        if (totalCoffeescripts.size() > 0) {
+            final StringBuilder js = new StringBuilder();
             try {
-                js = compiler.compile(totalCoffeescripts.toString());
-                if (!bare) {
-                    js = "(function() {" + js + "}).call(this);";
+                for (String coffeescript:totalCoffeescripts) {
+                    js.append(compiler.compile(coffeescript)).append('\n');
                 }
             } catch (Throwable t) {
                 getLog().error(t);
@@ -119,7 +114,7 @@ public class CoffeescriptMojo extends AbstractMojo {
             }
 
             try {
-                FileUtils.writeStringToFile(this.outputFile, js);
+                FileUtils.writeStringToFile(this.outputFile, js.toString());
             } catch (IOException ex) {
                 getLog().error(ex);
                 throw new MojoExecutionException("Error to save JS file: " + this.outputFile);

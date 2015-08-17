@@ -41,7 +41,7 @@ Snapshots are not available in maven repository, you can find them [here](https:
 # History
 
 **v1.2**
-* Add bare support
+* Fix concating scripts (wrapping each script into the function) 
 
 **v1.1**
 * Fix throwing exception on compile failure

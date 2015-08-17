@@ -32,6 +32,9 @@ public class CoffeescriptMojo extends AbstractMojo {
     @Parameter( property = "outputFile", required = false )
     private File outputFile;
 
+    @Parameter( defaultValue = "false", property = "bare", required = false )
+    private Boolean bare;
+
     public void execute() throws MojoExecutionException, MojoFailureException {
         final DirectoryScanner scanner = new DirectoryScanner();
         scanner.setIncludes(new String[]{include});
@@ -73,6 +76,9 @@ public class CoffeescriptMojo extends AbstractMojo {
                 String js = null;
                 try {
                     js = compiler.compile(coffeescript);
+                    if (!bare) {
+                        js = "(function() {" + js + "}).call(this);";
+                    }
                 } catch (Throwable t) {
                     getLog().error(t);
                     throw new MojoExecutionException("Error in coffeescript file: " + in);
@@ -95,9 +101,12 @@ public class CoffeescriptMojo extends AbstractMojo {
         }
 
         if (totalCoffeescripts.length() > 0) {
-            String js = null;
+            String js;
             try {
                 js = compiler.compile(totalCoffeescripts.toString());
+                if (!bare) {
+                    js = "(function() {" + js + "}).call(this);";
+                }
             } catch (Throwable t) {
                 getLog().error(t);
                 throw new MojoExecutionException("Error in coffeescript files");
